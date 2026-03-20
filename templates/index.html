@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARV DRIVE</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css')}}">
+</head>
+<body>
+
+    <div class="main-container">
+        <div class="app_title">
+            <h1>GOLGOL DRIVE</h1>
+        </div>
+
+        {% if directory_exist %}
+            <div id="notif" class="notification">
+                <p>Folder Exists</p>
+            </div>
+        {% endif %}
+
+        <section class="create-dir-section">
+            <form action="/mkdir" method="POST" class="inline-form">
+                <input type="text" name="directory_name" id="directory_name" placeholder="New directory name..." required>
+                <button type="submit" class="btn-primary">Create Directory</button>
+            </form>
+        </section>
+
+        <div class="directory-list">
+            {% if not directories %}
+                <h2 class="empty-msg">No Directories To Display!</h2>
+            {% else %}
+                {% for directory in directories %}
+                        <div class="directory-container">
+                            <span class="dir-name">{{ directory }}</span>
+
+                            <div class="btns_container">
+                                <form action="/upload" method="POST" class="upload-form">
+                                    <input type="file" name="file_name" id="file_{{ loop.index }}" class="input-file">
+                                    <label for="file_{{ loop.index }}" class="file-label">Choose File</label>
+                                    <button type="submit" class="btn-upload">Upload</button>
+                                </form>
+                                
+                                <button type="button" value="{{ directory }}" class="btn_delete">DELETE</button>
+                            </div>
+                        </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+
+        const notif_box = document.getElementById("notif");
+        if(notif_box){
+            window.history.replaceState({}, document.title, window.location.pathname);
+            setTimeout(() => { notif_box.remove(); }, 3000);    
+        }
+
+        const delete_button = document.querySelectorAll(".btn_delete")
+        for(let i = 0; i < delete_button.length; i++){
+            delete_button[i].addEventListener("click", async (event) => {
+                const result = await fetch(`/rmdir?dir_name=${delete_button[i].value}`, {
+                    method: "DELETE"
+                });
+                if (result.status == "200") {
+                    window.location.href = "/";
+                }
+            });
+        }
+    </script>
+</body>
+</html>
