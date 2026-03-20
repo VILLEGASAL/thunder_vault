@@ -35,9 +35,10 @@
                             <span class="dir-name">{{ directory }}</span>
 
                             <div class="btns_container">
-                                <form action="/upload" method="POST" class="upload-form">
+                                <form action="/upload" method="POST" class="upload-form" enctype="multipart/form-data">
                                     <input type="file" name="file_name" id="file_{{ loop.index }}" class="input-file">
                                     <label for="file_{{ loop.index }}" class="file-label">Choose File</label>
+                                    <input type="hidden" name="dir_name" value="{{ directory }}">
                                     <button type="submit" class="btn-upload">Upload</button>
                                 </form>
                                 
@@ -52,22 +53,52 @@
     <script>
 
         const notif_box = document.getElementById("notif");
+
         if(notif_box){
             window.history.replaceState({}, document.title, window.location.pathname);
             setTimeout(() => { notif_box.remove(); }, 3000);    
         }
 
-        const delete_button = document.querySelectorAll(".btn_delete")
-        for(let i = 0; i < delete_button.length; i++){
-            delete_button[i].addEventListener("click", async (event) => {
-                const result = await fetch(`/rmdir?dir_name=${delete_button[i].value}`, {
+        const upload_forms = document.querySelectorAll(".upload-form");
+
+        upload_forms.forEach(upload_form => {
+
+            upload_form.addEventListener("click", (event) => {
+
+                event.stopPropagation();
+            });
+        });
+
+        const delete_buttons = document.querySelectorAll(".btn_delete")
+
+        delete_buttons.forEach((delete_button) => {
+
+            delete_button.addEventListener("click", async (event) => {
+
+                event.stopPropagation();
+
+                const result = await fetch(`/rmdir?dir_name=${delete_button.value}`, {
                     method: "DELETE"
                 });
+
                 if (result.status == "200") {
                     window.location.href = "/";
                 }
             });
-        }
+        });
+
+        const directory_container = document.querySelectorAll(".directory-container")
+
+        directory_container.forEach((directory) => {
+            
+            directory.addEventListener("click", async(event) => {
+
+                const directory_name = directory.children[0].textContent;
+
+                window.location.href = `/view_files/${directory_name}`               
+            });
+        });
+
     </script>
 </body>
 </html>
