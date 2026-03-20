@@ -3,19 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARV DRIVE</title>
+    <title>Thunder Vault</title>
     <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css')}}">
 </head>
 <body>
 
     <div class="main-container">
         <div class="app_title">
-            <h1>GOLGOL DRIVE</h1>
+            <div class="logo-icon">⚡</div>
+            <h1>THUNDER <span>VAULT</span></h1>
         </div>
 
         {% if directory_exist %}
             <div id="notif" class="notification">
-                <p>Folder Exists</p>
+                <p>Folder Already Exists!</p>
             </div>
         {% endif %}
 
@@ -36,13 +37,18 @@
 
                             <div class="btns_container">
                                 <form action="/upload" method="POST" class="upload-form" enctype="multipart/form-data">
-                                    <input type="file" name="file_name" id="file_{{ loop.index }}" class="input-file">
-                                    <label for="file_{{ loop.index }}" class="file-label">Choose File</label>
                                     <input type="hidden" name="dir_name" value="{{ directory }}">
-                                    <button type="submit" class="btn-upload">Upload</button>
+                                    <label for="file_{{ loop.index }}" class="file-label">
+                                        <span class="label-text">Choose File</span>
+                                    </label>
+                                    <input type="file" name="file_name" id="file_{{ loop.index }}" class="input-file">
+                                    <button type="submit" class="btn-upload" disabled>Upload</button>
                                 </form>
                                 
-                                <button type="button" value="{{ directory }}" class="btn_delete">DELETE</button>
+                                <div class="action-group">
+                                    <button type="button" class="btn_open" value="{{ directory }}">Open Directory</button>
+                                    <button type="button" class="btn_delete" value="{{ directory }}">Delete</button>
+                                </div>
                             </div>
                         </div>
                 {% endfor %}
@@ -50,55 +56,86 @@
         </div>
     </div>
 
-    <script>
+    <div id="deleteModal" class="modal-overlay">
+        <div class="modal-content">
+            <h3>Confirm Deletion</h3>
+            <p>Are you sure you want to permanently delete <span id="targetDirName"></span>? This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button id="cancelDelete" class="btn-secondary">Cancel</button>
+                <button id="confirmDelete" class="btn-danger">Delete Forever</button>
+            </div>
+        </div>
+    </div>
 
+    <script>
+        // Notification if a directory exists
         const notif_box = document.getElementById("notif");
 
         if(notif_box){
+
             window.history.replaceState({}, document.title, window.location.pathname);
+
             setTimeout(() => { notif_box.remove(); }, 3000);    
         }
 
-        const upload_forms = document.querySelectorAll(".upload-form");
+        // File Uploading
+        const input_files = document.querySelectorAll(".input-file");
+        input_files.forEach(input => {
+            input.addEventListener("change", (event) => {
+                const fileInput = event.target;
+                const parentForm = fileInput.closest('.upload-form');
+                const uploadBtn = parentForm.querySelector('.btn-upload');
+                const labelText = parentForm.querySelector('.label-text');
 
-        upload_forms.forEach(upload_form => {
-
-            upload_form.addEventListener("click", (event) => {
-
-                event.stopPropagation();
-            });
-        });
-
-        const delete_buttons = document.querySelectorAll(".btn_delete")
-
-        delete_buttons.forEach((delete_button) => {
-
-            delete_button.addEventListener("click", async (event) => {
-
-                event.stopPropagation();
-
-                const result = await fetch(`/rmdir?dir_name=${delete_button.value}`, {
-                    method: "DELETE"
-                });
-
-                if (result.status == "200") {
-                    window.location.href = "/";
+                if (fileInput.files.length > 0) {
+                    labelText.textContent = fileInput.files[0].name;
+                    labelText.style.color = "#2b8a3e"; 
+                    uploadBtn.disabled = false;
                 }
             });
         });
 
-        const directory_container = document.querySelectorAll(".directory-container")
-
-        directory_container.forEach((directory) => {
-            
-            directory.addEventListener("click", async(event) => {
-
-                const directory_name = directory.children[0].textContent;
-
-                window.location.href = `/view_files/${directory_name}`               
+        // Openning a Directory
+        document.querySelectorAll(".btn_open").forEach(btn => {
+            btn.addEventListener("click", () => {
+                window.location.href = `/view_files/${btn.value}`;
             });
         });
 
+        // Custom Modal
+        const modal = document.getElementById("deleteModal");
+        const confirmBtn = document.getElementById("confirmDelete");
+        const cancelBtn = document.getElementById("cancelDelete");
+        const targetSpan = document.getElementById("targetDirName");
+        let directoryToDelete = "";
+
+        document.querySelectorAll(".btn_delete").forEach(btn => {
+            btn.addEventListener("click", () => {
+                directoryToDelete = btn.value;
+                targetSpan.textContent = `"${directoryToDelete}"`;
+                modal.classList.add("show");
+            });
+        });
+
+        cancelBtn.addEventListener("click", () => {
+            modal.classList.remove("show");
+        });
+
+        confirmBtn.addEventListener("click", async () => {
+            const result = await fetch(`/rmdir?dir_name=${directoryToDelete}`, {
+                method: "DELETE"
+            });
+            if (result.status == "200") {
+                window.location.href = "/";
+            }
+        });
+
+        // Close modal if clicking outside the box
+        window.onclick = (event) => {
+            if (event.target == modal) {
+                modal.classList.remove("show");
+            }
+        }
     </script>
 </body>
 </html>
