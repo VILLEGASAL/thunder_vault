@@ -6,7 +6,14 @@
     <title>Singn up</title>
 </head>
 <body>
+    {% if error %}
+            <h1>Username Already Taken</h1>
+    {% endif %}
     <form action="{{ route }}" method="POST">
+
+        <input type="text" name="firstname" placeholder="Firstname" id="first_name" required>
+        <input type="text" name="lastname" placeholder="Lastname" id="last_name" required>
+
         <input type="text" name="username" placeholder="Username" required>
         <input type="password" name="password" placeholder="Password" required>
 

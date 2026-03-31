@@ -1,33 +1,35 @@
-from fastapi import FastAPI, Form, Query, UploadFile, File, Path, HTTPException
+from fastapi import FastAPI, Form, Query, UploadFile, File, Path, HTTPException, Depends
 from typing import Annotated, Optional, List, Dict
 from pydantic import BaseModel
 from fastapi.requests import Request
-from fastapi.responses import RedirectResponse, FileResponse
+from fastapi.responses import Response, RedirectResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from jose import JWTError, jwt
-from passlib.context import CryptContext 
+
+#AUTHENTICATION & AUTHORIZATION LIBRARIES
+from jose import JWTError, jwt, ExpiredSignatureError
+#----------------------------------------------- 
 from dotenv import load_dotenv, dotenv_values
 import os
 import shutil
 import mimetypes
-import hashlib
+
+from routes import auth_route
+from routes.auth_route import Verify_Token, Check_Token_In_DB, SESSIONS
+from database.db import Get_DB
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import text
+from datetime import datetime, timezone
+import uuid
+import time
 
 load_dotenv()
 
+
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
-ACCES_TOKEN_EXPIRES_IN_MINUTE = os.getenv("ACCES_TOKEN_EXPIRES_IN_MINUTE")
-REFRESH_TOKEN_EXPIRES_IN_DAYS = os.getenv("REFRESH_TOKEN_EXPIRES_IN_DAYS")
-
-password_context = CryptContext(schemes=["argon2"], deprecated="auto")
-
-class Directory(BaseModel):
-    directory_name: str
-
-class User(BaseModel):
-    username: str
-    password: str
+ACCES_TOKEN_EXPIRES_IN_SECONDS = os.getenv("ACCES_TOKEN_EXPIRES_IN_SECONDS")
+REFRESH_TOKEN_EXPIRES_IN_SECONDS = os.getenv("REFRESH_TOKEN_EXPIRES_IN_SECONDS")
 
 app = FastAPI()
 
@@ -37,73 +39,147 @@ static_file_directory = StaticFiles(directory="static")
 
 app.mount("/static", static_file_directory, name="static")
 
-users: list[User] = []
+app.include_router(
 
-@app.get("/login")
-def Login_Page(request: Request):
+    auth_route.auth_route,
+    prefix="/auth",
+    tags=["auth_rooutes"]
+)
 
-    return template.TemplateResponse(request, "login.html", {
+class Directory(BaseModel):
+    directory_name: str
 
-        "route": "/login"
-    })
-
-@app.post("/login")
-def Login(user_credentials: Annotated[User, Form()]):
-
-    username_input = user_credentials.username
-    password_input = user_credentials.password
-
-    for user in users:
-        if user.username == username_input:
-            print("User Found!")
-            
-            if password_context.verify(password_input, user.password):
-
-                return{
-
-                    "Message":"Authenticated!"
-                }
-            
-            return HTTPException(status_code=401, detail="Invalid Username or Password!")
+@app.post("/logout")
+async def Logout_User(request: Request, response: Response, db: AsyncSession = Depends(Get_DB)):
     
-    return HTTPException(status_code=401, detail="Invalid Username or Password!")
+    response = RedirectResponse(url="/auth/login", status_code=303)
 
-@app.get("/signup")
-def Signup_Page(request: Request):
+    access_token = request.cookies.get("access_token")
+    
+    refresh_token = request.cookies.get("refresh_token")
+    try:
+        if access_token:
+            try:
+            
+                access_token_payload = jwt.decode(access_token, SECRET_KEY, algorithms=ALGORITHM, options={
 
-    return template.TemplateResponse(request, "signup.html", {
+                    "verify_exp": False
+                })
 
-        "route": "/signup"
-    })
+                access_token_jti = access_token_payload.get("jti", None)
 
-@app.post("/signup")
-def Signup(user_credentials: Annotated[User, Form()]):
+                access_token_exp = access_token_payload.get("exp", None)
 
-    user_credentials.password = password_context.hash(user_credentials.password)
+                query = text("INSERT INTO blacklist_table (access_token_jti, expires_at) VALUES (:access_token_jti, :expires_at) ON CONFLICT DO NOTHING")
 
-    users.append(user_credentials)
+                values = {
 
-    print(users)
+                    "access_token_jti": access_token_jti,
+                    "expires_at": datetime.fromtimestamp(access_token_exp, tz=timezone.utc)
+                }
 
-    return RedirectResponse("/login", status_code=303)
+                await db.execute(query, values)
+            
+            except Exception as e:
+                pass
+        
+        if refresh_token:
+            try:
+                refresh_token_payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=ALGORITHM, options={
+
+                    "verify_exp": False
+                })
+
+                refresh_token_jti = refresh_token_payload.get("jti", None)
+
+                query = text("DELETE FROM refresh_tokens WHERE jti = :jti")
+
+                values = {
+
+                    "jti": refresh_token_jti
+                }        
+
+                await db.execute(query, values)
+
+            except Exception as e:
+
+                print(e)
+
+                pass
+        
+        await db.commit()
+                
+    finally:
+        response.delete_cookie("access_token")
+        response.delete_cookie("refresh_token")
+
+        return response  
+    
+
 
 @app.get("/")
-def Home(request: Request, directory_exist: Optional[bool] = Query(default=False)):
+async def Home(request: Request, db: AsyncSession = Depends(Get_DB), directory_exist: Optional[bool] = Query(default=False)):
+
+    access_token = request.cookies.get("access_token")
 
     main_folder: str = "file_server_directory"
+    
+    try:
+        if access_token and Verify_Token(access_token):
 
-    if not os.path.exists(main_folder):
-        os.makedirs(main_folder)
+            access_token_payload = jwt.decode(access_token, SECRET_KEY, algorithms=ALGORITHM)
 
-    directories = os.listdir(path=main_folder)
+            access_token_jti = access_token_payload.get("jti", None)
+            
+            query = text("SELECT * FROM blacklist_table WHERE access_token_jti = :access_token_jti")
 
-    directories.sort()
+            values = {
 
-    return template.TemplateResponse(request, "index.html", { 
+                "access_token_jti": access_token_jti
+            }
 
-        "directories": directories,
-        "directory_exist": directory_exist
-    })
+            result = await db.execute(query, values)
+
+            blacklist_jti = result.mappings().all()
+
+            if not blacklist_jti:
+
+                if not os.path.exists(main_folder):
+
+                    os.makedirs(main_folder)
+
+                    directories = os.listdir(path=main_folder)
+
+                    return template.TemplateResponse(request, "index.html", { 
+
+                        "directories": directories,
+                        "directory_exist": directory_exist
+                    })
+                else:
+
+                    directories = os.listdir(path=main_folder)
+
+                    directories.sort()
+
+                    return template.TemplateResponse(request, "index.html", { 
+
+                        "directories": directories,
+                        "directory_exist": directory_exist
+                    })
+            print("!!! BLACKLISTED !!!")
+            return RedirectResponse("/auth/login", status_code=303)
+        else:
+
+            return RedirectResponse(url="/auth/login", status_code=303)       
+    except ExpiredSignatureError:
+
+        print("!!! EXPIRED ACCESS TOKEN !!!")
+        # user = request.cookies.get("user")
+
+        return RedirectResponse("/auth/refresh/")
+
+    except JWTError:
+        return HTTPException(status_code=403, detail="Access Token Expired")  
 
 @app.get("/view_files/{dir_name}")
 def View_Files(dir_name: str, request: Request):
