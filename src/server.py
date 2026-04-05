@@ -210,14 +210,20 @@ def Mkdir(data: Annotated[Directory, Form()], get_user_by_id = Depends(Get_User_
         case _:
             user_directory = get_user_by_id[0].get("username", None)
 
-            if os.path.exists(f"file_server_directory/{user_directory}/{data.directory_name}"):
+            new_directory = os.path.join("file_server_directory", user_directory, data.directory_name)
+
+            if os.path.exists(new_directory):
                     print("!!! Existing !!!")
 
                     return RedirectResponse(url="/?directory_exist=True", status_code=303)
 
             new_directory = os.path.join(f"file_server_directory/{user_directory}", data.directory_name)
 
-            os.mkdir(new_directory) 
+            try:
+                os.mkdirs(new_directory)
+            except Exception as e:
+                print(e)
+                return RedirectResponse(url="/", status_code=303)
             
             return RedirectResponse(url="/", status_code=303)
 
