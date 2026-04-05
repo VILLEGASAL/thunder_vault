@@ -218,9 +218,9 @@ def Mkdir(data: Annotated[Directory, Form()], get_user_by_id = Depends(Get_User_
                     return RedirectResponse(url="/?directory_exist=True", status_code=303)
 
             new_directory = os.path.join(f"file_server_directory/{user_directory}", data.directory_name)
-
+            print("!!!CREATING NEW DIR!!!")
             try:
-                os.mkdirs(new_directory)
+                os.makedirs(new_directory)
             except Exception as e:
                 print(e)
                 return RedirectResponse(url="/", status_code=303)
