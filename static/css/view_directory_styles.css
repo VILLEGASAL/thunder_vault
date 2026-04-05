@@ -1,0 +1,183 @@
+/* Thunder Vault Deep Space Theme - Directory View */
+:root {
+    --bg-base: #161414;             /* Almost Black */
+    --bg-surface: #17153B;          /* Dark Navy/Purple */
+    --bg-elevated: #2E236C;         /* Deep Purple/Blue */
+    --border-color: #433D8B;        /* Lighter Purple/Blue */
+    --primary-accent: #5d1582;      /* Vibrant Purple */
+    --primary-accent-hover: #7b22a8;/* Brightened for hover visibility */
+    --cyber-yellow: #FFEA00;        /* Neon Lightning Yellow */
+    
+    --text-primary: #ffffff;        
+    --text-secondary: #b0adc4;      
+    --danger-red: #ff5555;
+    --danger-red-hover: #cc0000;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', sans-serif; }
+
+body { background-color: var(--bg-base); color: var(--text-primary); }
+
+/* --- TOP NAVIGATION (The Layout Fix) --- */
+.top-nav { 
+    display: flex; 
+    align-items: center; 
+    padding: 1rem 2rem; 
+    background-color: var(--bg-surface); 
+    border-bottom: 2px solid var(--border-color); 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3); 
+    gap: 15px; /* Creates spacing between the avatar and logout button */
+}
+
+.app-branding { 
+    display: flex; 
+    align-items: center; 
+    gap: 10px; 
+    margin-right: auto; /* THE MAGIC FIX: Pushes the avatar and logout button to the far right */
+}
+
+.logo-icon { 
+    font-size: 1.8rem; 
+    color: var(--cyber-yellow);
+    text-shadow: 0 0 12px rgba(255, 234, 0, 0.6); 
+}
+.app-branding h1 { font-size: 1.4rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px;}
+.app-branding h1 span { color: var(--text-primary); font-weight: 900; }
+
+/* --- USER PROFILE & LOGOUT --- */
+.user-profile { display: flex; align-items: center; }
+
+/* The Avatar Pill */
+.avatar { 
+    background-color: var(--bg-elevated); 
+    color: var(--text-primary); 
+    padding: 8px 16px; 
+    border-radius: 20px; 
+    font-weight: 600; 
+    font-size: 0.9rem;
+    border: 1px solid var(--border-color);
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    max-width: 250px; 
+}
+
+.logout-form { display: flex; align-items: center; margin: 0; padding: 0; }
+
+.btn-logout { 
+    background: transparent; 
+    border: none; 
+    color: var(--text-secondary); 
+    cursor: pointer; 
+    padding: 8px; 
+    border-radius: 50%; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center;
+    transition: all 0.2s; 
+}
+.btn-logout:hover { 
+    background: rgba(255, 85, 85, 0.1); 
+    color: var(--danger-red); 
+}
+
+/* --- MAIN LAYOUT & HEADER --- */
+.main-container { max-width: 1000px; margin: 0 auto; padding: 2rem 1rem; }
+.directory-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 15px; }
+.header-left { display: flex; align-items: center; gap: 15px; }
+
+.btn-back { background: transparent; border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: 600; color: var(--text-secondary); transition: all 0.2s; }
+.btn-back:hover { background: var(--bg-elevated); color: var(--text-primary); border-color: var(--primary-accent); }
+.directory-header h2 { font-size: 1.2rem; font-weight: 400; color: var(--text-secondary); }
+.directory-header h2 strong { color: var(--text-primary); }
+
+/* --- UPLOAD FORM --- */
+.header-right { display: flex; justify-content: flex-end; }
+.upload-form { display: flex; gap: 10px; align-items: center; }
+
+.file-label.btn-outline { 
+    display: inline-block; padding: 10px 20px; border: 2px dashed var(--border-color); 
+    color: var(--text-secondary); background: transparent; border-radius: 20px; 
+    font-weight: 600; cursor: pointer; transition: all 0.2s ease; text-align: center; 
+    max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; 
+}
+.file-label.btn-outline:hover { border-color: var(--primary-accent); color: var(--text-primary); background: rgba(93, 21, 130, 0.1); }
+
+.btn-upload { background: var(--primary-accent); color: var(--text-primary); border: none; padding: 10px 20px; border-radius: 20px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-upload:hover:not(:disabled) { background: var(--primary-accent-hover); box-shadow: 0 0 10px var(--primary-accent); }
+.btn-upload:disabled { background: var(--bg-surface); color: var(--text-secondary); cursor: not-allowed; opacity: 0.6; }
+
+/* --- FILE LIST (DRIVE UI) --- */
+.drive-container { background: var(--bg-elevated); border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+
+.list-header { display: flex; justify-content: space-between; padding: 1rem 1.5rem; border-bottom: 2px solid var(--border-color); font-weight: 600; color: var(--text-secondary); font-size: 0.9rem; background-color: var(--bg-surface); }
+
+.file-row { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); transition: background 0.2s; }
+.file-row:hover { background-color: var(--border-color); } 
+.file-row:last-child { border-bottom: none; }
+
+.file-info { display: flex; align-items: center; gap: 15px; flex: 1; overflow: hidden; }
+.file-icon { font-size: 1.5rem; filter: grayscale(1) brightness(2); }
+.file-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-primary); }
+
+/* --- ACTIONS (MATERIAL ICONS) --- */
+.action-group { display: flex; gap: 8px; }
+.btn-icon { background: transparent; border: none; cursor: pointer; padding: 8px; border-radius: 50%; color: var(--text-secondary); transition: all 0.2s; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; text-decoration: none; }
+.btn-icon .material-symbols-outlined { font-size: 20px; transition: transform 0.2s ease; }
+
+.btn-download:hover { background-color: var(--bg-surface); color: var(--primary-accent-hover); }
+.btn-download:hover .material-symbols-outlined { transform: translateY(2px); }
+
+.btn-delete:hover { background-color: rgba(255, 85, 85, 0.1); color: var(--danger-red); }
+.btn-delete:hover .material-symbols-outlined { transform: scale(1.1); }
+
+/* --- EMPTY STATE --- */
+.empty-state { text-align: center; padding: 4rem 2rem; color: var(--text-secondary); }
+.empty-icon { font-size: 4rem; margin-bottom: 1rem; color: var(--border-color); }
+.empty-state p { font-size: 1.2rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary); }
+.empty-state span { font-size: 0.9rem; }
+
+/* --- MODAL --- */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(22, 20, 20, 0.8); backdrop-filter: blur(4px); display: flex; justify-content: center; align-items: center; opacity: 0; visibility: hidden; transition: all 0.3s ease; z-index: 1000; }
+.modal-overlay.show { opacity: 1; visibility: visible; }
+
+.modal-content { background: var(--bg-elevated); padding: 2rem; border-radius: 16px; border: 1px solid var(--border-color); max-width: 400px; width: 90%; text-align: left; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: translateY(-20px); transition: transform 0.3s ease; }
+.modal-overlay.show .modal-content { transform: translateY(0); }
+
+.modal-content h3 { margin-bottom: 1rem; color: var(--danger-red); font-size: 1.3rem; }
+.modal-content p { color: var(--text-secondary); margin-bottom: 2rem; line-height: 1.5; }
+#targetFileName { font-weight: bold; color: var(--text-primary); }
+
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.btn-text { background: transparent; color: var(--text-secondary); border: 1px solid var(--border-color); padding: 10px 15px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: all 0.2s;}
+.btn-text:hover { background: var(--border-color); color: var(--text-primary); }
+
+.btn-danger { background: var(--danger-red); color: white; border: none; padding: 10px 20px; border-radius: 20px; cursor: pointer; font-weight: bold; transition: background 0.2s; }
+.btn-danger:hover { background: var(--danger-red-hover); box-shadow: 0 0 10px rgba(255, 85, 85, 0.4); }
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (min-width: 768px) {
+    .action-group { width: 100px; justify-content: flex-end; }
+}
+
+@media (max-width: 600px) {
+    .top-nav { padding: 1rem; flex-wrap: wrap; }
+    
+    /* Shrink the avatar pill so it doesn't push the logo off-screen */
+    .avatar { max-width: 140px; padding: 6px 12px; font-size: 0.8rem; }
+    .app-branding h1 { font-size: 1.1rem; }
+    .logo-icon { font-size: 1.4rem; }
+
+    /* Hide the desktop column headers */
+    .list-header { display: none; }
+    
+    /* Make the upload form stretch to fit the screen */
+    .header-right { width: 100%; margin-top: 10px; }
+    .upload-form { width: 100%; display: flex; flex-direction: row; }
+    
+    /* Adjust buttons inside the upload form */
+    .file-label.btn-outline { flex: 2; max-width: none; font-size: 0.9rem; padding: 10px; }
+    .btn-upload { flex: 1; font-size: 0.9rem; padding: 10px; }
+    
+    .file-row { padding: 1rem; }
+}

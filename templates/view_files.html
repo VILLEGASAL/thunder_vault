@@ -3,19 +3,103 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ directory_name }}</title>
+    <title>{{ directory_name }} - Thunder Vault</title>
+    
+    <link rel="stylesheet" href="{{ url_for('static', path='css/view_directory_styles.css') }}">
+    
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
 <body>
-    <h1>{{ directory_name }}</h1>
+    <header class="top-nav">
+        <div class="app-branding">
+            <span class="logo-icon">⚡</span>
+            <h1>Thunder <span>Vault</span></h1>
+        </div>
+        <div class="user-profile">
+            <div class="avatar">WELCOME {{ user }}!</div>
+        </div>
 
-    {% if files %}
-        <ul>
-            {% for file in files %}
-                <li>
-                    <a href="/download/{{ directory_name }}/{{ file }}" download="{{ file }}">{{ file }}</a>
-                </li>
-            {% endfor %}
-        </ul>
-    {% endif %}
+        <form action="/logout" method="post" class="logout-form">
+                <button type="submit" class="btn-logout" title="Logout">
+                    <span class="material-symbols-outlined">logout</span>
+                </button>
+        </form>
+    </header>
+
+    <main class="main-container">
+        <div class="directory-header">
+            <div class="header-left">
+                <button class="btn-back" onclick="window.location.href='/'" title="Go to Home">
+                    &#8592; Back
+                </button>
+                <h2>My Drive / <strong>{{ directory_name }}</strong></h2>
+            </div>
+
+            <div class="header-right">
+                <form action="/upload?dir_name={{ directory_name }}" method="POST" class="upload-form" id="globalUploadForm" enctype="multipart/form-data">
+                    
+                    <label for="fileInput" class="file-label btn-outline" id="fileLabel" title="Select a file">
+                        <span class="label-text" id="fileNameDisplay">+ Choose File</span>
+                    </label>
+                    
+                    <input type="file" name="file_name" id="fileInput" style="display: none;" onchange="handleFileSelection(this)">
+                    
+                    <button type="submit" class="btn-upload" id="uploadSubmitBtn" disabled>Upload</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="drive-container">
+            <div class="list-header">
+                <div class="col-name">Name</div>
+                <div class="col-actions">Actions</div>
+            </div>
+
+            {% if files %}
+                <div class="file-list">
+                    {% for file in files %}
+                        <div class="file-row">
+                            <div class="file-info">
+                                <span class="file-icon">&#128196;</span>
+                                <span class="file-name">{{ file }}</span>
+                            </div>
+                            
+                            <div class="action-group">
+                                <a href="/download/{{ directory_name }}/{{ file }}" class="btn-icon btn-download" download="{{ file }}" title="Download">
+                                    <span class="material-symbols-outlined">download</span>
+                                </a>
+                                
+                                <button type="button" class="btn-icon btn-delete" onclick="openDeleteModal('{{ directory_name }}', '{{ file }}')" title="Delete">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">&#128193;</div>
+                    <p>This folder is empty.</p>
+                    <span>Click the "+ Upload File" button above to add files.</span>
+                </div>
+            {% endif %}
+        </div>
+    </main>
+
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-content">
+            <h3>Delete File?</h3>
+            <p>"{targetFileName}" will be permanently deleted from Thunder Vault. This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button class="btn-text" onclick="closeModal()">Cancel</button>
+                
+                <form id="deleteForm" method="POST" action="">
+                    <button type="submit" class="btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', path='js/directory.js') }}"></script>
 </body>
 </html>

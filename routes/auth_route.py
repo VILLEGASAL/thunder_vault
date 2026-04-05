@@ -17,14 +17,16 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy import text
 from database.db import Get_DB
 
+
+from services.services import Signup_User, Check_Token_If_Valid, Verify_Token, Generate_Token, Check_If_Refresh_Token_Is_Valid
 import uuid
 
 load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
-ACCES_TOKEN_EXPIRES_IN_SECONDS = os.getenv("ACCES_TOKEN_EXPIRES_IN_SECONDS")
-REFRESH_TOKEN_EXPIRES_IN_SECONDS = os.getenv("REFRESH_TOKEN_EXPIRES_IN_SECONDS")
+ACCES_TOKEN_EXPIRES_IN_SECONDS = os.getenv("ACCES_TOKEN_EXPIRES_IN_MINUTES")
+REFRESH_TOKEN_EXPIRES_IN_SECONDS = os.getenv("REFRESH_TOKEN_EXPIRES_IN_MINUTES")
 
 
 SESSIONS: Dict = {} 
@@ -47,125 +49,68 @@ class User(BaseModel):
 
 password_context = CryptContext(schemes=["argon2"], deprecated="auto")
 
-async def Check_Token_In_DB(access_token: str, db: AsyncSession):
 
-    try:
-        query = text("SELECT access_token FROM tokens_table WHERE access_token = :access_token")
-        values = {
-
-            "access_token": access_token
-        }
-
-        result = await db.execute(query, values)
-
-        token = result.fetchone()
-
-        if token:
-            return True
-        
-        return False
-    
-    except SQLAlchemyError:
-
-        print("ERRRR")
-        return False
-
-def Generate_Token(data: Dict, expire_time: timedelta):
-
-    data["exp"] = int((datetime.now(timezone.utc) + expire_time).timestamp())
-    
-    data["jti"] = str(uuid.uuid4())
-
-    return jwt.encode(data, SECRET_KEY, algorithm=ALGORITHM)
-
-def Create_Tokens(user: str):
-    
-    access_token = Generate_Token({"user":user}, timedelta(minutes=int(ACCES_TOKEN_EXPIRES_IN_SECONDS)))
-    refresh_token = Generate_Token({"user":user}, timedelta(minutes=int(REFRESH_TOKEN_EXPIRES_IN_SECONDS)))
-
-    return {
-
-        "access_token": access_token,
-        "refresh_token": refresh_token
-    }
-
-
-def Refresh_Token(ref_token: str, user: str):
-
-    try:
-
-        if jwt.decode(ref_token, SECRET_KEY, algorithms=ALGORITHM):
-            
-            return Create_Tokens(user)
-    
-    except ExpiredSignatureError:
-
-        return False
-    
-    except JWTError:
-
-        return False
-
-def Verify_Token(token: str):
-    
-    if jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM):
-        return True
-    
-    return False
 
 @auth_route.get("/refresh")
-async def Get_New_Access_Token(request: Request, response: Response, db: AsyncSession = Depends(Get_DB)):
+async def Get_New_Access_Token(request: Request, dependency = Depends(Check_If_Refresh_Token_Is_Valid), db: AsyncSession = Depends(Get_DB)):
 
-    refresh_token = request.cookies.get("refresh_token")
+    success_redirect = RedirectResponse(url="/", status_code=303)
+    
+    failed_redirect = RedirectResponse(url="/auth/login", status_code=303)
 
-    success_redirect = RedirectResponse("/", status_code=303)
+    refresh_token = request.cookies.get("refresh_token", None)
 
-    failed_redirect = RedirectResponse("/auth/login", status_code=303)
+    refresh_token_payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=ALGORITHM, options = {
+        "verify_exp": False
+    })
 
-    try:
+    user = refresh_token_payload.get("user", None)
 
-        if refresh_token and Verify_Token(refresh_token):
+    match dependency:
+        case 0:
+            return failed_redirect
+        case 1:
+            new_access_token = Generate_Token({"user": user}, timedelta(minutes=int(ACCES_TOKEN_EXPIRES_IN_SECONDS)))
 
-            refresh_token_payload = jwt.decode(refresh_token, SECRET_KEY, algorithms=ALGORITHM)
+            success_redirect.set_cookie(
 
-            user = refresh_token_payload.get("user", None)
+                key="access_token",
+                value=new_access_token,
+                httponly=True,
+                secure=True,
+                samesite="lax"
+            )
 
-            refresh_token_jti = refresh_token_payload.get("jti", None)
-        
-            query = text("SELECT * FROM refresh_tokens WHERE jti = :jti")
-
-            values = {
-
-                "jti": refresh_token_jti
-            }
-
-            result = await db.execute(query, values)
-
-            refresh_tokens_jti = result.mappings().all()
-
-            #Check if refresh token is in the database. If not, it has been revoked or deleted
-            if refresh_tokens_jti:
-                
-                print("!!! GENERATING NEW ACCESS TOKEN !!!")
-                new_access_token = Generate_Token({"user": user}, timedelta(minutes=int(ACCES_TOKEN_EXPIRES_IN_SECONDS)))
-
-                success_redirect.set_cookie(
-
-                    key="access_token",
-                    value=new_access_token,
-                    httponly=True,
-                    secure=True,
-                    samesite="lax"
-                )
-
-                return success_redirect
-
-    except ExpiredSignatureError:
-
-        return failed_redirect
+            return success_redirect
+        case 2:
+            return failed_redirect
+        case 3:
+            return failed_redirect
+        case 4:
+            return failed_redirect
+        case 5:
+            return failed_redirect
 
 @auth_route.get("/signup")
-def Signup_Page(request: Request, error: Optional[bool] = Query(default=False)):
+def Signup_Page(request: Request, dependency = Depends(Check_Token_If_Valid), error: Optional[bool] = Query(default=False)):
+
+    return_template = template.TemplateResponse(request, "signup.html", {
+
+        "error": error
+    })
+
+    match dependency:
+        case 0:
+            return return_template
+        case 1:
+            return RedirectResponse(url="/", status_code=303)
+        case 2:
+            return return_template
+        case 3:
+            return return_template
+
+    if not dependency:
+        return RedirectResponse(url="/", status_code=303)
 
     return template.TemplateResponse(request, "signup.html", {
 
@@ -177,48 +122,47 @@ def Signup_Page(request: Request, error: Optional[bool] = Query(default=False)):
 async def Signup(user_credentials: Annotated[User, Form()], db: AsyncSession = Depends(Get_DB)):
 
     user_credentials.password = password_context.hash(user_credentials.password)
-
-    firstname = user_credentials.firstname
-    lastname = user_credentials.lastname
-    username = user_credentials.username
-    password = user_credentials.password
-
-    query = text("INSERT INTO users_table (first_name, last_name, username, password) VALUES (:firstname, :lastname, :username, :password)")
-
-    try:
-        await db.execute(query, 
-            {
-                "firstname": firstname,
-                "lastname": lastname,
-                "username": username, 
-                "password": password
-            })
-
-        await db.commit()
-
-        return RedirectResponse("/auth/login", status_code=303)
     
-    except IntegrityError as e:
+    response = await Signup_User(user_credentials, db)
 
-        return RedirectResponse(url="/auth/signup?error=True", status_code=303)
+    match response:
+        case 0:
+            return RedirectResponse("/auth/signup?error=True", status_code=303)
+        case 1:
+            return RedirectResponse("/auth/signup", status_code=303)
+        case _:
+            new_directory = os.path.join("file_server_directory", response)
 
-    except SQLAlchemyError:
-
-        await db.rollback()
-
-        return HTTPException(status_code=500, detail="Database Error Occured")
+            os.mkdir(new_directory) 
+            print(f"!!! FROM SIGNUP ROUTE : {response}")
+            return RedirectResponse("/auth/login", status_code=303)
 
 @auth_route.get("/login")
-def Login_Page(request: Request, error: Optional[bool] = Query(default=None)):
+def Login_Page(request: Request, dependency = Depends(Check_Token_If_Valid), error: Optional[bool] = Query(default=None)):
 
-    return template.TemplateResponse(request, "login.html", {
+    match dependency:
+        case 0:
+            return template.TemplateResponse(request, "login.html", {
 
-        "error": error
-    })
+                "error": error
+            })
+        case 1:
+            return RedirectResponse(url="/", status_code=303)
+        case 2:
+            return template.TemplateResponse(request, "login.html", {
+
+                "error": error
+            })
+        case 3:
+            return template.TemplateResponse(request, "login.html", {
+
+                "error": error
+            })
+
 
 @auth_route.post("/login")
-async def Login(user_credentials: Annotated[User, Form()], db: AsyncSession = Depends(Get_DB)):
-    
+async def Login(user_credentials: Annotated[User, Form()], db: AsyncSession = Depends(Get_DB)):    
+
     from services.services import Get_User_By_Username, Insert_Refresh_Token
 
     username_input = user_credentials.username
@@ -244,8 +188,7 @@ async def Login(user_credentials: Annotated[User, Form()], db: AsyncSession = De
 
                 refresh_token_exp = refresh_token_payload.get("exp", None)
 
-                #COnvert the exp to timestamp
-
+                #Convert the exp to timestamp
                 expires_at = datetime.fromtimestamp(refresh_token_exp, tz=timezone.utc)
 
                 if await Insert_Refresh_Token(refresh_token_payload.get("jti", None), refresh_token_payload.get("user", None), expires_at, db):
@@ -270,7 +213,7 @@ async def Login(user_credentials: Annotated[User, Form()], db: AsyncSession = De
 
                     return success_redirect
                 else:
-                    print("ERROR INSERTING>>>>>")
+                    print("!!! ERROR INSERTING !!!")
 
                     return RedirectResponse("/auth/login")
         return RedirectResponse(url="/auth/login?error=True", status_code=303)

@@ -3,21 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Singn up</title>
+    <title>Sign Up - Thunder Vault</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="{{ url_for('static', path='css/signup.css') }}">
 </head>
 <body>
-    {% if error %}
-            <h1>Username Already Taken</h1>
-    {% endif %}
-    <form action="{{ route }}" method="POST">
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            
+            <div class="form-column">
+                <h2>Join the Vault</h2>
+                <p class="subtitle">Create your secure account today.</p>
 
-        <input type="text" name="firstname" placeholder="Firstname" id="first_name" required>
-        <input type="text" name="lastname" placeholder="Lastname" id="last_name" required>
+                {% if error %}
+                    <div class="error-banner">
+                        <span class="material-symbols-outlined">error</span>
+                        <span>Username Already Taken</span>
+                    </div>
+                {% endif %}
 
-        <input type="text" name="username" placeholder="Username" required>
-        <input type="password" name="password" placeholder="Password" required>
+                <form action="{{ route }}" method="POST" id="signupForm">
+                    
+                    <div class="input-row">
+                        <div class="form-group">
+                            <label for="first_name">First Name</label>
+                            <div class="input-container">
+                                <span class="material-symbols-outlined input-icon">badge</span>
+                                <input type="text" name="firstname" id="first_name" placeholder="First" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="last_name">Last Name</label>
+                            <div class="input-container">
+                                <input type="text" name="lastname" id="last_name" placeholder="Last" required style="padding-left: 12px;">
+                            </div>
+                        </div>
+                    </div>
 
-        <button type="submit">Signup</button>
-    </form>
+                    <div class="form-group">
+                        <label for="username">Username</label>
+                        <div class="input-container">
+                            <span class="material-symbols-outlined input-icon">person</span>
+                            <input type="text" name="username" id="username" placeholder="Choose a username" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <div class="input-container">
+                            <span class="material-symbols-outlined input-icon">lock</span>
+                            <input type="password" name="password" id="password" placeholder="Create a strong password" required>
+                            
+                            <button type="button" class="btn-toggle-pass" onclick="toggleVisibility('password', 'eyeIcon1')" title="Show Password">
+                                <span class="material-symbols-outlined" id="eyeIcon1">visibility</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirm_password">Confirm Password</label>
+                        <div class="input-container">
+                            <span class="material-symbols-outlined input-icon">verified_user</span>
+                            <input type="password" id="confirm_password" placeholder="Type password again" required>
+                            
+                            <button type="button" class="btn-toggle-pass" onclick="toggleVisibility('confirm_password', 'eyeIcon2')" title="Show Password">
+                                <span class="material-symbols-outlined" id="eyeIcon2">visibility</span>
+                            </button>
+                        </div>
+                        <span id="passwordError" class="validation-error"></span>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary-auth">Create Account</button>
+                </form>
+
+                <div class="auth-redirect">
+                    <p>Already have an account? <a href="/auth/login">Login here</a></p>
+                </div>
+            </div>
+
+            <div class="brand-column">
+                <span class="material-symbols-outlined massive-icon">bolt</span>
+                <h1>THUNDER <span>VAULT</span></h1>
+            </div>
+            
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', path='js/signup.js') }}"></script>
 </body>
 </html>

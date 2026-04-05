@@ -1,0 +1,92 @@
+/* --- SIGNUP PAGE STYLES --- */
+:root {
+    --bg-base: #161414;
+    --bg-surface: #17153B;
+    --bg-elevated: #2E236C;
+    --border-color: #433D8B;
+    --primary-accent: #5d1582;
+    --primary-accent-hover: #7b22a8;
+    --text-primary: #ffffff;        
+    --text-secondary: #b0adc4;      
+    --danger-red: #ff5555;
+    --cyber-yellow: #FFEA00;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+
+body { 
+    background-color: var(--bg-base); 
+    color: var(--text-primary); 
+    display: flex; justify-content: center; align-items: center; min-height: 100vh;
+}
+
+/* Kept the auth- classes to match your HTML */
+.auth-wrapper { padding: 2rem; width: 100%; display: flex; justify-content: center; }
+
+.auth-card {
+    display: flex; width: 100%; max-width: 900px;
+    background: var(--bg-elevated); border-radius: 16px; overflow: hidden;
+    box-shadow: 0 16px 40px rgba(0,0,0,0.5); border: 1px solid var(--border-color);
+}
+
+/* Branding Column (Right side on Desktop) */
+.brand-column {
+    flex: 1; background: var(--bg-surface); padding: 4rem 2rem;
+    display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+    border-left: 1px solid var(--border-color); /* Border is on the left now! */
+}
+.massive-icon { font-size: 6rem; color: var(--cyber-yellow); text-shadow: 0 0 20px rgba(255, 234, 0, 0.6), 0 0 40px rgba(255, 234, 0, 0.2); margin-bottom: 1rem; }
+.brand-column h1 { font-size: 2rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.5rem;}
+.brand-column h1 span { color: var(--text-primary); font-weight: 900; }
+.brand-column p { color: var(--text-secondary); letter-spacing: 1px; }
+
+/* Form Column (Left side on Desktop) */
+.form-column { flex: 1; padding: 4rem 3rem; display: flex; flex-direction: column; justify-content: center; }
+.form-column h2 { font-size: 1.8rem; margin-bottom: 0.2rem; }
+.subtitle { color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem; }
+
+.error-banner { display: flex; align-items: center; gap: 10px; background: rgba(255, 85, 85, 0.1); border: 1px solid var(--danger-red); color: var(--danger-red); padding: 12px 16px; border-radius: 8px; margin-bottom: 1.5rem; font-weight: 500; }
+
+/* SIGNUP SPECIFIC: Side-by-side inputs */
+.input-row { display: flex; gap: 15px; }
+.input-row .form-group { flex: 1; }
+
+.form-group { margin-bottom: 1.5rem; }
+.form-group label { display: block; margin-bottom: 8px; font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); }
+
+.input-container { position: relative; display: flex; align-items: center; }
+.input-icon { position: absolute; left: 12px; color: var(--text-secondary); pointer-events: none; }
+
+.input-container input {
+    width: 100%; background: var(--bg-base); border: 1px solid var(--border-color); color: var(--text-primary);
+    padding: 12px 12px 12px 45px; border-radius: 8px; font-size: 1rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.input-container input:focus { border-color: var(--primary-accent); box-shadow: 0 0 0 2px rgba(93, 21, 130, 0.3); }
+
+.btn-toggle-pass { position: absolute; right: 12px; background: none; border: none; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; padding: 4px; transition: color 0.2s; }
+.btn-toggle-pass:hover { color: var(--text-primary); }
+.input-container input[type="password"], .input-container input[type="text"]#password, .input-container input[type="text"]#confirm_password { padding-right: 45px; }
+
+/* SIGNUP SPECIFIC: Validation Error Text */
+.validation-error { display: none; color: var(--danger-red); font-size: 0.85rem; margin-top: 5px; font-weight: 500; }
+
+.btn-primary-auth { width: 100%; background: var(--primary-accent); color: var(--text-primary); border: none; padding: 14px; border-radius: 8px; font-size: 1rem; font-weight: bold; cursor: pointer; margin-top: 1rem; transition: background 0.2s, transform 0.1s; }
+.btn-primary-auth:hover { background: var(--primary-accent-hover); }
+.btn-primary-auth:active { transform: scale(0.98); }
+
+.auth-redirect { margin-top: 2rem; text-align: center; font-size: 0.95rem; color: var(--text-secondary); }
+.auth-redirect a { color: var(--text-primary); font-weight: 600; text-decoration: none; margin-left: 4px; transition: color 0.2s, text-shadow 0.2s; }
+.auth-redirect a:hover { color: var(--cyber-yellow); text-shadow: 0 0 10px rgba(255, 234, 0, 0.4); }
+
+/* Mobile Adjustments */
+@media (max-width: 600px) {
+    /* SIGNUP SPECIFIC: Stack first/last name vertically on tiny screens */
+    .input-row { flex-direction: column; gap: 0; }
+}
+
+@media (max-width: 768px) {
+    /* SIGNUP SPECIFIC: Reverse the column order so branding is on top! */
+    .auth-card { flex-direction: column-reverse; }
+    .brand-column { padding: 3rem 2rem; border-left: none; border-bottom: 1px solid var(--border-color); }
+    .form-column { padding: 2.5rem 2rem; }
+}

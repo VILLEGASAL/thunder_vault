@@ -9,7 +9,9 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 engine = create_async_engine(
 
     url=DATABASE_URL,
-    echo=False
+    echo=False,
+    connect_args={"ssl": True},
+    pool_pre_ping=True
 )
 
 local_session = async_sessionmaker(

@@ -1,0 +1,231 @@
+/* Thunder Vault Dark Theme Variables */
+:root {
+    --bg-base: #161414;             /* Almost Black */
+    --bg-surface: #17153B;          /* Dark Navy/Purple */
+    --bg-elevated: #2E236C;         /* Deep Purple/Blue */
+    --border-color: #433D8B;        /* Lighter Purple/Blue */
+    --primary-accent: #5d1582;      /* Vibrant Purple */
+    --primary-accent-hover: #7b22a8;
+    --text-primary: #ffffff;        
+    --text-secondary: #b0adc4;      
+    --danger-red: #ff5555;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', 'Segoe UI', sans-serif; }
+
+/* Center the card on the screen */
+body { 
+    background-color: var(--bg-base); 
+    color: var(--text-primary); 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+.login-wrapper { padding: 2rem; width: 100%; display: flex; justify-content: center; }
+
+/* The Main 2-Column Card */
+.login-card {
+    display: flex;
+    width: 100%;
+    max-width: 900px;
+    background: var(--bg-elevated);
+    border-radius: 16px;
+    overflow: hidden; /* Keeps the child elements inside the rounded corners */
+    box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+    border: 1px solid var(--border-color);
+}
+
+/* --- Left Column: Branding --- */
+.brand-column {
+    flex: 1; /* Takes up 50% width */
+    background: var(--bg-surface);
+    padding: 4rem 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border-right: 1px solid var(--border-color);
+}
+
+.massive-icon { 
+    font-size: 6rem; 
+    color: #FFEA00; /* Cyber Yellow */
+    text-shadow: 0 0 20px rgba(255, 234, 0, 0.6), 0 0 40px rgba(255, 234, 0, 0.2); 
+    margin-bottom: 1rem; 
+}
+.brand-column h1 { font-size: 2rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.5rem;}
+.brand-column h1 span { color: var(--text-primary); font-weight: 900; }
+.brand-column p { color: var(--text-secondary); letter-spacing: 1px; }
+
+/* --- Right Column: Form --- */
+.form-column {
+    flex: 1; /* Takes up 50% width */
+    padding: 4rem 3rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.form-column h2 { font-size: 1.8rem; margin-bottom: 0.2rem; }
+.subtitle { color: var(--text-secondary); margin-bottom: 2rem; font-size: 0.95rem; }
+
+/* Error Banner */
+.error-banner {
+    display: flex; align-items: center; gap: 10px;
+    background: rgba(255, 85, 85, 0.1);
+    border: 1px solid var(--danger-red);
+    color: var(--danger-red);
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+}
+
+/* Form Inputs */
+.form-group { margin-bottom: 1.5rem; }
+.form-group label { display: block; margin-bottom: 8px; font-size: 0.9rem; font-weight: 600; color: var(--text-secondary); }
+
+.input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.input-icon {
+    position: absolute;
+    left: 12px;
+    color: var(--text-secondary);
+    pointer-events: none; /* Stops the icon from blocking clicks */
+}
+
+.input-container input {
+    width: 100%;
+    background: var(--bg-base);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 12px 12px 12px 45px; /* Extra left padding to make room for the icon */
+    border-radius: 8px;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-container input:focus {
+    border-color: var(--primary-accent);
+    box-shadow: 0 0 0 2px rgba(93, 21, 130, 0.3);
+}
+
+/* Password Toggle Button */
+.btn-toggle-pass {
+    position: absolute;
+    right: 12px;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 4px;
+    transition: color 0.2s;
+}
+
+.btn-toggle-pass:hover { color: var(--text-primary); }
+
+.input-container input[type="password"], 
+.input-container input[type="text"]#password {
+    padding-right: 45px; /* Extra right padding so text doesn't hide behind the eye icon */
+}
+
+/* Login Button */
+.btn-login {
+    width: 100%;
+    background: var(--primary-accent);
+    color: var(--text-primary);
+    border: none;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 1rem;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.btn-login:hover { background: var(--primary-accent-hover); }
+.btn-login:active { transform: scale(0.98); }
+
+/* --- Mobile Responsiveness --- */
+@media (max-width: 768px) {
+    .login-card {
+        flex-direction: column; /* Stack the columns vertically */
+    }
+    .brand-column {
+        padding: 3rem 2rem;
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+    }
+    .form-column {
+        padding: 2.5rem 2rem;
+    }
+}
+
+/* --- Secondary Auth Actions --- */
+.auth-redirect {
+    margin-top: 2rem;
+    text-align: center;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+}
+
+.auth-redirect a {
+    color: var(--text-primary);
+    font-weight: 600;
+    text-decoration: none; /* Removes the ugly default browser underline */
+    margin-left: 4px;
+    transition: color 0.2s, text-shadow 0.2s;
+}
+
+.auth-redirect a:hover {
+    color: #FFEA00; /* Uses our new Cyber Yellow! */
+    text-shadow: 0 0 10px rgba(255, 234, 0, 0.4);
+}
+
+/* ADD THIS TO YOUR EXISTING AUTH/LOGIN CSS */
+
+/* Put First Name and Last Name side by side */
+.input-row {
+    display: flex;
+    gap: 15px;
+}
+.input-row .form-group {
+    flex: 1; /* Both take up exactly 50% of the row */
+}
+
+/* Red validation text for mismatched passwords */
+.validation-error {
+    display: none; /* Hidden by default */
+    color: var(--danger-red);
+    font-size: 0.85rem;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+/* Mobile tweak for the side-by-side inputs */
+@media (max-width: 600px) {
+    .input-row {
+        flex-direction: column;
+        gap: 0;
+    }
+}
+
+/* Mobile tweak for reverse stacking */
+@media (max-width: 768px) {
+    .auth-card {
+        /* This forces the brand column to jump back to the top on mobile, 
+           even though it is 2nd in the HTML structure! */
+        flex-direction: column-reverse; 
+    }
+}

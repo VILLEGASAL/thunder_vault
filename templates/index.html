@@ -3,75 +3,94 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thunder Vault</title>
-    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css')}}">
+    <title>Thunder Vault - My Drive</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/styles.css')}}">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
 </head>
 <body>
 
-    <div class="main-container">
-        <div class="app_title">
-            <div class="logo-icon">⚡</div>
+    <header class="top-nav">
+        <div class="app-branding">
+            <span class="logo-icon">⚡</span>
             <h1>THUNDER <span>VAULT</span></h1>
         </div>
 
+        <div class="user-profile">
+            <div class="avatar">WELCOME {{ user }}!</div>
+            <form action="/logout" method="post" class="logout-form">
+                <button type="submit" class="btn-logout" title="Logout">
+                    <span class="material-symbols-outlined">logout</span>
+                </button>
+            </form>
+        </div>
+    </header>
+
+    <main class="main-container">
         {% if directory_exist %}
-            <div id="notif" class="notification">
+            <div id="notif" class="notification error">
+                <span class="material-symbols-outlined">error</span>
                 <p>Folder Already Exists!</p>
             </div>
         {% endif %}
 
-        <section class="create-dir-section">
-            <form action="/mkdir" method="POST" class="inline-form">
-                <input type="text" name="directory_name" id="directory_name" placeholder="New directory name..." required>
-                <button type="submit" class="btn-primary">Create Directory</button>
-            </form>
-        </section>
+        <div class="dashboard-toolbar">
+            <h2>My Drive</h2>
+            <section class="create-dir-section">
+                <form action="/mkdir" method="POST" class="inline-form">
+                    <div class="input-with-icon">
+                        <span class="material-symbols-outlined">create_new_folder</span>
+                        <input type="text" name="directory_name" id="directory_name" placeholder="New folder name..." required>
+                    </div>
+                    <button type="submit" class="btn-primary">Create</button>
+                </form>
+            </section>
+        </div>
 
         <div class="directory-list">
             {% if not directories %}
-                <h2 class="empty-msg">No Directories To Display!</h2>
+                <div class="empty-state">
+                    <span class="material-symbols-outlined empty-icon">folder_off</span>
+                    <h2 class="empty-msg">No Folders To Display!</h2>
+                    <p>Create a new directory above to get started.</p>
+                </div>
             {% else %}
-                {% for directory in directories %}
-                        <div class="directory-container">
-                            <span class="dir-name">{{ directory }}</span>
+                <div class="folder-grid">
+                    {% for directory in directories %}
+                        <div class="folder-card">
+                            <div class="folder-main" onclick="openDirectory('{{ directory }}')">
+                                <span class="material-symbols-outlined folder-icon">folder</span>
+                                <span class="dir-name">{{ directory }}</span>
+                            </div>
 
-                            <div class="btns_container">
-                                <form action="/upload" method="POST" class="upload-form" enctype="multipart/form-data">
-                                    <input type="hidden" name="dir_name" value="{{ directory }}">
-                                    <label for="file_{{ loop.index }}" class="file-label">
-                                        <span class="label-text">Choose File</span>
-                                    </label>
-                                    <input type="file" name="file_name" id="file_{{ loop.index }}" class="input-file">
-                                    <button type="submit" class="btn-upload" disabled>Upload</button>
-                                </form>
-                                
-                                <div class="action-group">
-                                    <button type="button" class="btn_open" value="{{ directory }}">Open Directory</button>
-                                    <button type="button" class="btn_delete" value="{{ directory }}">Delete</button>
-                                </div>
+                            <div class="action-group">
+                                <button type="button" class="btn-icon btn_delete" value="{{ directory }}" onclick="openDeleteModal('{{ directory }}')" title="Delete Folder">
+                                    <span class="material-symbols-outlined">delete</span>
+                                </button>
                             </div>
                         </div>
-                {% endfor %}
+                    {% endfor %}
+                </div>
             {% endif %}
         </div>
-    </div>
+    </main>
 
     <div id="deleteModal" class="modal-overlay">
         <div class="modal-content">
-            <h3>Confirm Deletion</h3>
-            <p>Are you sure you want to permanently delete <span id="targetDirName"></span>? This action cannot be undone.</p>
+            <div class="modal-header">
+                <span class="material-symbols-outlined warning-icon">warning</span>
+                <h3>Confirm Deletion</h3>
+            </div>
+            <p>Are you sure you want to permanently delete <strong id="targetDirName"></strong>? This action cannot be undone.</p>
+            
             <div class="modal-actions">
-                <button id="cancelDelete" class="btn-secondary">Cancel</button>
-                <button id="confirmDelete" class="btn-danger">Delete Forever</button>
+                <button type="button" id="cancelDelete" class="btn-secondary" onclick="closeModal()">Cancel</button>
+                
+                <form id="confirmDeleteForm" method="POST" action="">
+                    <button type="submit" id="confirmDelete" class="btn-danger">Delete Forever</button>
+                </form>
             </div>
         </div>
     </div>
-
-    <form action="/logout" method="post">
-        <button type="submit">
-            LOGOUT
-        </button>
-    </form>
-    <script src="{{ url_for('static', path='/js/main.js') }}" defer></script>
+    <script src="{{ url_for('static', path='js/main.js') }}" defer></script>
 </body>
 </html>
