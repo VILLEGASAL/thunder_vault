@@ -260,7 +260,7 @@ async def Get_User_By_ID(request: Request, db: AsyncSession = Depends(Get_DB)):
 async def Check_Token_If_Valid(request: Request, db: AsyncSession = Depends(Get_DB)):
 
     access_token = request.cookies.get("access_token", None)
-
+    
     if not access_token:
         #Return 0 if there is no access token in the cookie.
         return 0

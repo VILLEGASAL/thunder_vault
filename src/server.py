@@ -131,7 +131,13 @@ async def Home(request: Request, check_if_authorized=Depends(Check_Token_If_Vali
 
                 match get_user_by_id:
                     case None:
-                        return RedirectResponse(url="/auth/login", status_code=303)
+                        
+                        response = RedirectResponse(url="/auth/login", status_code=303)
+
+                        response.delete_cookie("access_token")
+                        response.delete_cookie("refresh_token")
+
+                        return response
                     case _:
                         user_directory_name = get_user_by_id[0].get("username", None)
 

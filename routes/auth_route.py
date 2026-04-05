@@ -101,6 +101,7 @@ def Signup_Page(request: Request, dependency = Depends(Check_Token_If_Valid), er
 
     match dependency:
         case 0:
+            print("!!!NO TOKENS FOUND!!!")
             return return_template
         case 1:
             return RedirectResponse(url="/", status_code=303)
@@ -142,6 +143,7 @@ def Login_Page(request: Request, dependency = Depends(Check_Token_If_Valid), err
 
     match dependency:
         case 0:
+            print("!!!NO TOKENS FOUND!!!")
             return template.TemplateResponse(request, "login.html", {
 
                 "error": error
