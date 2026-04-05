@@ -124,19 +124,26 @@ async def Signup(user_credentials: Annotated[User, Form()], db: AsyncSession = D
 
     user_credentials.password = password_context.hash(user_credentials.password)
     
-    response = await Signup_User(user_credentials, db)
-
     match response:
         case 0:
             return RedirectResponse("/auth/signup?error=True", status_code=303)
         case 1:
             return RedirectResponse("/auth/signup", status_code=303)
         case _:
-            new_directory = os.path.join("file_server_directory", response)
+            response = await Signup_User(user_credentials, db)
 
-            os.mkdir(new_directory) 
-            print(f"!!! FROM SIGNUP ROUTE : {response}")
-            return RedirectResponse("/auth/login", status_code=303)
+            new_directory = os.path.join("file_server_directory", response)
+            try:
+                os.makedirs(new_directory)
+
+                print(f"!!! FROM SIGNUP ROUTE : {response}")
+            
+                return RedirectResponse("/auth/login", status_code=303)
+            except Exception as e:
+                print(e)
+                return RedirectResponse(url="/auth/signup", status_code=303)
+
+            
 
 @auth_route.get("/login")
 def Login_Page(request: Request, dependency = Depends(Check_Token_If_Valid), error: Optional[bool] = Query(default=None)):
