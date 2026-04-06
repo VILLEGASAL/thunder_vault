@@ -123,14 +123,14 @@ def Signup_Page(request: Request, dependency = Depends(Check_Token_If_Valid), er
 async def Signup(user_credentials: Annotated[User, Form()], db: AsyncSession = Depends(Get_DB)):
 
     user_credentials.password = password_context.hash(user_credentials.password)
-    
+    response = await Signup_User(user_credentials, db)
+
     match response:
         case 0:
             return RedirectResponse("/auth/signup?error=True", status_code=303)
         case 1:
             return RedirectResponse("/auth/signup", status_code=303)
         case _:
-            response = await Signup_User(user_credentials, db)
 
             new_directory = os.path.join("file_server_directory", response)
             try:
