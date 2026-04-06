@@ -123,6 +123,8 @@ def Signup_Page(request: Request, dependency = Depends(Check_Token_If_Valid), er
 async def Signup(user_credentials: Annotated[User, Form()], db: AsyncSession = Depends(Get_DB)):
 
     user_credentials.password = password_context.hash(user_credentials.password)
+    
+    
     response = await Signup_User(user_credentials, db)
 
     match response:
@@ -134,7 +136,7 @@ async def Signup(user_credentials: Annotated[User, Form()], db: AsyncSession = D
 
             new_directory = os.path.join("file_server_directory", response)
             try:
-                os.makedirs(new_directory)
+                os.makedirs(new_directory, exist_ok=True)
 
                 print(f"!!! FROM SIGNUP ROUTE : {response}")
             
